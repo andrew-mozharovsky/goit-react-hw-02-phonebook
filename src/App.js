@@ -3,28 +3,25 @@ import { v4 as uuidv4 } from "uuid";
 
 import Form from "./components/Form";
 import ContactsList from "./components/ContactsList";
+import Filter from "./components/Filter";
+import contactsArr from "./contactsArr";
+
+import styles from "./App.module.scss";
 
 class App extends React.Component {
   state = {
-    contacts: [
-      { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
-      { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
-      { id: "id-3", name: "Eden Clements", number: "645-17-79" },
-      { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
-    ],
+    contacts: contactsArr,
     filter: "",
   };
 
+  findContactName = (contactName) => {
+    const { contacts } = this.state;
+    return contacts.find(({ name }) => name === contactName);
+  };
+
   addContact = ({ name, number }) => {
-    let ch = false;
-    this.state.contacts.map((con) => {
-      if (con.name === name) {
-        return (ch = true);
-      }
-    });
-    console.log(ch);
-    if (ch) {
-      alert("Noooooo");
+    if (this.findContactName(name)) {
+      alert(`${name} is already in contacts`);
       return;
     }
     this.setState(({ contacts }) => {
@@ -41,13 +38,38 @@ class App extends React.Component {
     });
   };
 
+  getFilterValue = (e) => {
+    this.setState({ filter: e.currentTarget.value });
+  };
+  filterContactsValue = () => {
+    const { filter, contacts } = this.state;
+    const normalizeFilter = filter.toLowerCase();
+    return contacts.filter(({ name }) => {
+      return name.toLowerCase().includes(normalizeFilter);
+    });
+  };
+
+  deleteContact = (id) => {
+    this.setState(({ contacts }) => ({
+      contacts: contacts.filter((contact) => contact.id !== id),
+    }));
+  };
+
   render() {
-    const { contacts } = this.state;
+    const { filter } = this.state;
     return (
-      <div>
+      <section className={styles.container}>
+        <h1 className={styles.title}>Phonebook</h1>
         <Form addContact={this.addContact} />
-        <ContactsList contacts={contacts} />
-      </div>
+        <div className={styles.contacts_container}>
+          <h2 className={styles.contact_title}>Contacts</h2>
+          <Filter filter={filter} onChange={this.getFilterValue} />
+          <ContactsList
+            contacts={this.filterContactsValue()}
+            deleteContact={this.deleteContact}
+          />
+        </div>
+      </section>
     );
   }
 }
